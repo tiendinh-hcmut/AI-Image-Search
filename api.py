@@ -44,6 +44,10 @@ def search_text(keyword: str):
     output = [{"filename": res.payload["filename"], "score": res.score} for res in results]
     return {"keyword": keyword, "results": output}
 
+@app.get("/")
+def health_check():
+    return {"status": "ok", "message": "API is fine"}
+
 @app.post("/search_by_image")
 async def search_image(file: UploadFile = File(...)):
     ai_model = get_model()
