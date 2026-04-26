@@ -3,13 +3,14 @@ from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from PIL import Image
 import io
+import os
 
 app = FastAPI()
 
 model = SentenceTransformer('clip-ViT-B-32')
 client = QdrantClient(
-    url="https://6500f011-eb83-4726-a85d-3e1e59a6a17b.us-east-2-0.aws.cloud.qdrant.io", 
-    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6NjY1NzNmYWEtZmI2Mi00NTg0LTg4NmEtOTM4MzVmZWU5OWRmIn0.oxo_haBTtqEuOhT1JowaOmRHFFXH_OX4THRcg6nVjC8"
+    url=os.getenv("QDRANT_URL"), 
+    api_key=os.getenv("QDRANT_API_KEY")
 )
 
 @app.get("/search")
