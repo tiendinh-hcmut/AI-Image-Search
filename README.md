@@ -1,21 +1,26 @@
-# AI Image Semantic Search
+# AI Image Semantic Search (Microservices Architecture)
 
-An intelligent image search system powered by Semantic Search. Unlike traditional systems that match filenames, this system uses Artificial Intelligence to "understand" the visual content of images and the context of text queries, delivering highly relevant results based on similarity.
+An advanced image search system powered by Semantic Search. This project uses AI to understand the visual content of images and text, returning highly relevant results. It is built using a modern microservices architecture, separating the frontend UI from the backend AI logic.
 
 **Live Demo:** [https://khfhgvtzsld2vjujtyqv7b.streamlit.app/](https://khfhgvtzsld2vjujtyqv7b.streamlit.app/)
 
-## Tech Stack
-* **AI Model (Feature Extraction):** OpenAI CLIP (`clip-ViT-B-32`) via `sentence-transformers`.
-* **Vector Database:** Qdrant Cloud (Storing and querying high-dimensional vectors with Cosine Similarity).
-* **Web Framework:** Streamlit.
-* **Language:** Python.
+## Core Features
+* 🔤 **Text-to-Image Search:** Enter natural language queries (e.g., "forest", "cat") to find relevant images.
+* 🖼️ **Image-to-Image Search:** Upload an image to find visually and semantically similar images in the database.
 
-## How it Works (Architecture)
-1. **Data Ingestion:** The CLIP model scans the original image dataset, encoding each image into a 512-dimensional vector which is then stored in Qdrant Cloud.
-2. **Inference:** When a user enters a query (e.g., "forest", "cat"), the same CLIP model encodes the text into a corresponding 512-dimensional vector.
-3. **Vector Search:** Qdrant calculates the Cosine Similarity between the text vector and the image vectors in the database, returning the top 3 most relevant images.
+## Tech Stack & Architecture
+This project is separated into two main components:
 
-## Installation & Local Setup
+**1. Backend API (Render):**
+* **Framework:** FastAPI.
+* **AI Model:** OpenAI CLIP (`clip-ViT-B-32`) via `sentence-transformers` for feature extraction.
+* **Vector Database:** Qdrant Cloud.
+
+**2. Frontend UI (Streamlit Cloud):**
+* **Framework:** Streamlit.
+* Communicates with the Backend API via HTTP requests.
+
+## Local Installation & Setup
 
 1. Clone this repository:
    ```bash
@@ -28,15 +33,17 @@ An intelligent image search system powered by Semantic Search. Unlike traditiona
    pip install -r requirements.txt
    ```
 
-3. (Optional) Run the ingestion script if using a local database:
+3. Run the Backend API (Terminal 1):
    ```bash
-   python upload_vectors.py
+   uvicorn api:app --reload
    ```
 
-4. Launch the Web UI:
+4. Run the Frontend UI (Terminal 2):
    ```bash
    python -m streamlit run app.py
    ```
+
+*Note: Scripts for data ingestion and downloading images have been moved to the `tools/` directory.*
 
 ## Author
 * **Đinh Tiến**
