@@ -1,47 +1,52 @@
 import streamlit as st
-from sentence_transformers import SentenceTransformer
-from qdrant_client import QdrantClient
+import requests
 import os
 
 st.set_page_config(page_title="AI Image Search", layout="wide")
-st.title("🔍 Trình Tìm Kiếm Ảnh Bằng AI")
+st.title("Trình Tìm Kiếm Ảnh AI")
 
-@st.cache_resource
-def load_system():
-    model = SentenceTransformer('clip-ViT-B-32')
-    client = QdrantClient(
-    url="https://6500f011-eb83-4726-a85d-3e1e59a6a17b.us-east-2-0.aws.cloud.qdrant.io", 
-    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6NjY1NzNmYWEtZmI2Mi00NTg0LTg4NmEtOTM4MzVmZWU5OWRmIn0.oxo_haBTtqEuOhT1JowaOmRHFFXH_OX4THRcg6nVjC8"
-)
-    return model, client
-
-model, client = load_system()
-
-query = st.text_input("Bạn muốn tìm ảnh gì? (Thử gõ: cat, city, forest...)", "")
-
-if query:
-    st.write(f"Đang tìm kiếm cho: **{query}**...")
-    
-    query_vector = model.encode(query).tolist()
-    
-    results = client.query_points(
-        collection_name="image_collection",
-        query=query_vector,
-        limit=3 
-    ).points
-    
-    st.write("### Kết quả:")
-    
+def display_results(results):
+    st.write("### Kết quả tìm kiếm:")
     cols = st.columns(3)
-    
     for idx, res in enumerate(results):
-        filename = res.payload["filename"]
-        score = res.score  
-        
+        filename = res["filename"]
+        score = res["score"]
         img_path = os.path.join("data", filename)
         
         with cols[idx]:
             if os.path.exists(img_path):
-                st.image(img_path, caption=f"{filename} (Độ khớp: {score:.2f})")
+                st.image(img_path, caption=f"{filename} (Độ khớp: {score:.2f})", use_container_width=True)
             else:
-                st.error(f"Không tìm thấy file ảnh: {filename}")
+                st.error(f"Không tìm thấy ảnh: {filename}")
+
+tab1, tab2 = st.tabs(["🔤 Tìm bằng Chữ (Text-to-Image)", "🖼️ Tìm bằng Ảnh (Image-to-Image)"])
+
+with tab1:
+    query = st.text_input("Nhập từ khóa (Ví dụ: cat, forest, city...)", "")
+    if query:
+        st.write(f"Đang tìm kiếm cho từ khóa: **{query}**...")
+        try:
+            response = requests.get(f"http://127.0.0.1:8000/search?keyword={query}")
+            if response.status_code == 200:
+                display_results(response.json()["results"])
+            else:
+                st.error("Lỗi khi xử lý từ khóa ở Backend!")
+        except requests.exceptions.ConnectionError:
+            st.error("🔴 Không thể kết nối đến Backend API. Hãy kiểm tra xem Uvicorn đã bật chưa!")
+
+with tab2:
+    uploaded_file = st.file_uploader("Tải một bức ảnh lên đây...", type=["jpg", "jpeg", "png"])
+    
+    if uploaded_file is not None:
+        st.image(uploaded_file, caption="Ảnh bạn dùng để tìm kiếm", width=300)
+        st.write("Đang trích xuất đặc trưng và tìm ảnh tương đồng...")
+        
+        files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+        try:
+            response = requests.post("http://127.0.0.1:8000/search_by_image", files=files)
+            if response.status_code == 200:
+                display_results(response.json()["results"])
+            else:
+                st.error("Lỗi khi xử lý ảnh ở Backend!")
+        except requests.exceptions.ConnectionError:
+            st.error("🔴 Không thể kết nối đến Backend API. Hãy kiểm tra xem Uvicorn đã bật chưa!")
