@@ -26,7 +26,7 @@ with tab1:
     if query:
         st.write(f"Đang tìm kiếm cho từ khóa: **{query}**...")
         try:
-            response = requests.get(f"http://127.0.0.1:8000/search?keyword={query}")
+            response = requests.get(f"https://ai-image-api-yh5q.onrender.com/search?keyword={query}")
             if response.status_code == 200:
                 display_results(response.json()["results"])
             else:
@@ -43,7 +43,7 @@ with tab2:
         
         files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
         try:
-            response = requests.post("http://127.0.0.1:8000/search_by_image", files=files)
+            response = requests.post("https://ai-image-api-yh5q.onrender.com/search_by_image", files=files)
             if response.status_code == 200:
                 display_results(response.json()["results"])
             else:
