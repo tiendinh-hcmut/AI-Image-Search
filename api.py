@@ -4,14 +4,26 @@ from qdrant_client import QdrantClient
 from PIL import Image
 import io
 import os
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+model = None
+client = None
 
-model = SentenceTransformer('clip-ViT-B-32')
-client = QdrantClient(
-    url=os.getenv("QDRANT_URL"), 
-    api_key=os.getenv("QDRANT_API_KEY")
-)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model, client
+    print("Bắt đầu tải Model CLIP và kết nối Qdrant...")
+    model = SentenceTransformer('clip-ViT-B-32')
+    client = QdrantClient(
+        url=os.getenv("QDRANT_URL"), 
+        api_key=os.getenv("QDRANT_API_KEY")
+    )
+    print("Hệ thống AI đã sẵn sàng nhận lệnh!")
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
 
 @app.get("/search")
 def search_text(keyword: str):
@@ -31,7 +43,6 @@ async def search_image(file: UploadFile = File(...)):
     image = Image.open(io.BytesIO(contents)).convert("RGB")
     
     query_vector = model.encode(image).tolist()
-    
     results = client.query_points(
         collection_name="image_collection",
         query=query_vector,
