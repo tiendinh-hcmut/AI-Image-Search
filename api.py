@@ -1,5 +1,4 @@
 from fastapi import FastAPI, UploadFile, File
-from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from PIL import Image
 import io
@@ -13,7 +12,8 @@ client = None
 def get_model():
     global model
     if model is None:
-        print("Đang tải model CLIP lần đầu tiên...")
+        print("Đang import PyTorch và tải model CLIP...")
+        from sentence_transformers import SentenceTransformer
         model = SentenceTransformer('clip-ViT-B-32')
     return model
 
